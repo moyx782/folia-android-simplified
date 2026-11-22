@@ -462,3 +462,30 @@ html[data-click-through='active'] body .click-through-interactive * {
     animation: none;
     opacity: 0.9;
 }
+
+/* 极简模式：全局屏蔽高开销实时毛玻璃滤镜与装饰性动画，降低 WebView GPU 与合成负担。 */
+:root[data-minimalist-mode='true'] .backdrop-blur-xs,
+:root[data-minimalist-mode='true'] .backdrop-blur-sm,
+:root[data-minimalist-mode='true'] .backdrop-blur-md,
+:root[data-minimalist-mode='true'] .backdrop-blur-lg,
+:root[data-minimalist-mode='true'] .backdrop-blur-xl,
+:root[data-minimalist-mode='true'] .backdrop-blur-2xl,
+:root[data-minimalist-mode='true'] .backdrop-blur-3xl,
+:root[data-minimalist-mode='true'] .backdrop-blur {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+:root[data-minimalist-mode='true'] .explore-record,
+:root[data-minimalist-mode='true'] .explore-float,
+:root[data-minimalist-mode='true'] .explore-levels i {
+    transition: none !important;
+}
+
+:root[data-minimalist-mode='true'] .star-pop,
+:root[data-minimalist-mode='true'] .locate-mark,
+:root[data-minimalist-mode='true'] .animate-pulse,
+:root[data-minimalist-mode='true'] .animate-bounce,
+:root[data-minimalist-mode='true'] .animate-ping {
+    animation: none !important;
+}

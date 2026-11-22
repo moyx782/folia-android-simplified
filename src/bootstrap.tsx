@@ -25,6 +25,8 @@ import { isMainAppSurface, isObsBrowserSourceSurface, isPerfCheckSurface, isRemo
 // 副作用 import：store 在模块加载时就把 `<html data-reduce-motion>` 写好并保持同步。放在 bootstrap
 // 而不是 App 里，是因为下面按 URL 挂的根不止 App —— 远程控制窗口的进度辉光也读这个属性。
 import './stores/useMotionSettingsStore';
+// Synchronize `<html data-minimalist-mode>` at boot before initial surface mount.
+import './stores/useMinimalistModeStore';
 
 // src/bootstrap.tsx
 // Mounts the React app after index.tsx installs runtime-level browser shims.

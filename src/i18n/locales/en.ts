@@ -518,6 +518,8 @@ export default {
     "coverColorDefault": "Using default color",
     "staticModeOn": "Static mode enabled",
     "staticModeOff": "Static mode disabled",
+    "minimalistModeOn": "Minimalist mode enabled",
+    "minimalistModeOff": "Switched back to full mode",
     "homeBgDisabled": "Home dynamic background disabled",
     "homeBgEnabled": "Home dynamic background enabled",
     "autoBestLyricOn": "Auto-use best lyrics enabled",
@@ -1206,6 +1208,8 @@ export default {
       "settings-toggle-lattice-auto-focus": { "title": "Lattice auto-focus", "description": "Toggle whether the queue collage follows the playing song when tracks change" },
       "lattice-poster-tint": { "title": "Poster wall tint", "description": "Adjust the overlay that quiets posters outside the focus on the queue collage (Lattice) and the library wall" },
       "settings-reduce-motion": { "title": "Reduce motion", "description": "Turn down the animation on each surface that has one, or follow the system setting" },
+      "settings-minimalist-mode": { "title": "Minimalist mode settings", "description": "Open the Minimalist Mode switch in Graphics & Performance" },
+      "minimalist-mode-toggle": { "title": "Toggle minimalist mode", "description": "Switch between Minimalist Mode (low power, standard music UI) and Full Mode" },
       "settings-toggle-reduce-lattice-motion": { "title": "Reduce queue collage motion", "description": "Turn the queue collage expansion, camera flight and entrance wave down to instant" },
       "settings-toggle-follow-system-reduced-motion": { "title": "Follow system reduced motion", "description": "Toggle whether the system animation setting is allowed to reduce motion in the app" },
       "settings-toggle-track-switch-buttons": { "title": "Always show track switch arrows", "description": "Toggle whether the progress bar track switch arrows stay visible beside the title" },
@@ -2784,6 +2788,8 @@ export default {
     "staticMode": "Static Mode",
     "enableStaticMode": "Static Mode",
     "enableStaticModeDesc": "Disables the geometric backgrounds to save resources",
+    "enableMinimalistMode": "Minimalist Mode",
+    "enableMinimalistModeDesc": "Disables unnecessary animations, blurs, and canvas visualizers to save battery and memory with a standard music player interface",
     "settingsSearchPlaceholder": "Search settings",
     "settingsSearchClear": "Clear search",
     "settingsSearchEmpty": "No matching settings",
@@ -4910,6 +4916,7 @@ export default {
     "sortAscending": "Ascending",
     "sortDescending": "Descending",
     "importFolder": "Import Folder",
+    "scanDeviceMusic": "Scan Device Music",
     "importing": "Importing...",
     "importPlaylist": "Import Playlist",
     "importingPlaylist": "Importing playlist...",
@@ -7083,6 +7090,64 @@ export default {
         "drag": "Drag cards to reorder them. A card moves only within its own group, and snaps to the nearest place when you let go. On a touch screen, press and hold a card until it lifts, then drag.",
         "select": "Drag a box on an empty spot to select the cards inside it; {{mod}}-click a card to add or remove it. A panel floats beside the selected cards: add to queue, add to playlist, take out, clear selection. When the selection mixes sources, add to playlist is greyed out."
       }
+    }
+  },
+  "minimalist": {
+    "badge": "Minimalist",
+    "navAriaLabel": "Minimalist Navigation",
+    "commandPaletteLabel": "Command Palette",
+    "exitToFull": "Switch to Full Mode",
+    "exitToFullShort": "Full Mode",
+    "onboardingShortcutTitle": "Low-power Minimalist Mode",
+    "onboardingShortcutDesc": "Turn off heavy animations and use a clean music app interface",
+    "onboardingShortcutAction": "Use Minimalist",
+    "tabs": {
+      "discover": "Discover",
+      "library": "Library",
+      "search": "Search",
+      "profile": "Me"
+    },
+    "discover": {
+      "personalFm": "Personal FM",
+      "signIn": "Sign in to {{provider}}",
+      "empty": "No recommendations yet",
+      "openLibrary": "Browse Library"
+    },
+    "search": {
+      "recent": "Recent Searches",
+      "clearHistory": "Clear",
+      "removeHistoryItem": "Remove search history item",
+      "noResults": "No matching results"
+    },
+    "collection": {
+      "tracksUnit": "tracks",
+      "playAll": "Play All",
+      "filterPlaceholder": "Filter tracks",
+      "empty": "No tracks found"
+    },
+    "profile": {
+      "modeCardTitle": "Minimalist Mode Active",
+      "modeCardDesc": "Background shaders, blur filters, and heavy motion effects are disabled.",
+      "accountsSection": "Music Platforms",
+      "settingsSection": "Preferences",
+      "allSettings": "All Settings",
+      "navidromeIntegration": "Navidrome Server",
+      "enabled": "On",
+      "disabled": "Off"
+    },
+    "player": {
+      "coverView": "Cover View",
+      "lyricsView": "Lyrics View",
+      "noLyrics": "No lyrics available",
+      "addToPlaylist": "Add to Playlist",
+      "addToQueue": "Add to Queue",
+      "moveNext": "Play Next",
+      "removeTrack": "Remove",
+      "queueTitle": "Play Queue",
+      "shuffle": "Shuffle",
+      "emptyQueue": "Queue is empty",
+      "seek": "Seek",
+      "close": "Close"
     }
   }
 } as const;

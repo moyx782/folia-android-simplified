@@ -4,6 +4,7 @@ import { skipsStartupExperience } from '../dev/devLaunchFlags';
 import { hasOnboardingLibrarySuiteChoice } from '../library/app/librarySuiteChoice';
 import { requestPlaybackEntryViewPrompt, usePlaybackEntryViewStore } from '../stores/usePlaybackEntryViewStore';
 import { useSettingsModalStore } from '../stores/useSettingsModalStore';
+import { useMinimalistModeStore } from '../stores/useMinimalistModeStore';
 
 // src/hooks/useStartupExperienceGate.ts
 
@@ -30,6 +31,7 @@ type StartupExperienceState = {
     needsLibrarySuitePrompt: boolean;
     isPlaybackEntryViewPromptOpen: boolean;
     isPonderOnboardingOpen: boolean;
+    minimalistMode?: boolean;
 };
 
 /** Chooses the next blocking surface while ensuring that two startup dialogs never overlap. */
@@ -43,6 +45,7 @@ export const resolveStartupExperienceStep = ({
     needsLibrarySuitePrompt,
     isPlaybackEntryViewPromptOpen,
     isPonderOnboardingOpen,
+    minimalistMode = false,
 }: StartupExperienceState): StartupExperienceStep => {
     if (isReleaseNotesOpen || isPlaybackEntryViewPromptOpen || isPonderOnboardingOpen) {
         return null;
@@ -53,6 +56,9 @@ export const resolveStartupExperienceStep = ({
     const releaseDue = isCurrentRelease && !hasFinishedThisRelease;
     if (releaseDue && !hasSeenReleaseNotes) {
         return 'release-notes';
+    }
+    if (minimalistMode) {
+        return null;
     }
     // The library-interface page is owed once to every install, outside the release gate.
     if ((releaseDue && !hasChosenPlaybackEntryView) || needsLibrarySuitePrompt) {
@@ -80,6 +86,7 @@ export const useStartupExperienceGate = () => {
     const hasSeenLibrarySuitePrompt = usePlaybackEntryViewStore(state => state.hasSeenLibrarySuitePrompt);
     const needsLibrarySuitePrompt = hasOnboardingLibrarySuiteChoice() && !hasSeenLibrarySuitePrompt;
     const isPlaybackEntryViewPromptOpen = usePlaybackEntryViewStore(state => state.isPlaybackEntryViewPromptOpen);
+    const minimalistMode = useMinimalistModeStore(state => state.minimalistMode);
     const [lastSeenReleaseNotesVersion, setLastSeenReleaseNotesVersion] = useState(readLastSeenReleaseNotesVersion);
     const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
     const appVersion = typeof __APP_VERSION__ === 'undefined' ? null : __APP_VERSION__;
@@ -95,6 +102,7 @@ export const useStartupExperienceGate = () => {
         needsLibrarySuitePrompt,
         isPlaybackEntryViewPromptOpen,
         isPonderOnboardingOpen,
+        minimalistMode,
     });
 
     useEffect(() => {

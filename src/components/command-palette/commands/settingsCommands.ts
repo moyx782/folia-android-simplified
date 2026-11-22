@@ -721,6 +721,21 @@ export const settingsCommands: CommandPaletteCommand[] = [
         placeholder: context => context.shared.t('commandPalette.reduceMotionPlaceholder', 'Adjust the controls below'),
         execute: () => false,
     }),
+    createSettingsAnchorCommand(
+        'settings-minimalist-mode',
+        'Minimalist mode settings',
+        'Open the Minimalist Mode switch in Graphics & Performance',
+        ['lite mode settings', 'simple player option', 'low power setting', '极简模式设置', '省电设置'],
+        'enableMinimalistMode',
+    ),
+    createToggleCommand(
+        'minimalist-mode-toggle',
+        'settings',
+        'Toggle minimalist mode',
+        'Switch between Minimalist Mode (low power, standard music UI) and Full Mode',
+        ['lite mode', 'simple player', 'low power mode', 'standard music ui', '极简模式', '切换极简模式', '开启极简模式', '关闭极简模式', '省电模式', '简洁播放器'],
+        context => context.settings.toggleMinimalistMode(),
+    ),
     // The queue collage is the surface #370 was filed about, so it gets a direct toggle as well as
     // a row on the panel above: the listener who lost its animation should not have to find it.
     createToggleCommand('settings-toggle-reduce-lattice-motion', 'settings', 'Reduce queue collage motion', 'Turn the queue collage expansion, camera flight and entrance wave down to instant', ['reduce lattice motion', 'lattice animation', 'queue collage animation', 'collage motion', 'poster wall animation', '队列拼贴动画', '拼贴动效', '降低拼贴动态效果', '海报墙动画'], context => context.settings.toggleReduceLatticeMotion()),

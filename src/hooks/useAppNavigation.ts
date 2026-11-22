@@ -25,6 +25,7 @@ import { useAppViewStore } from '../stores/useAppViewStore';
 import type { AppView, LatticeSource } from '../stores/useAppViewStore';
 import { usePlaybackStore } from '../stores/usePlaybackStore';
 import { resolvePlaybackSurface, usePlaybackEntryViewStore, type PlaybackEntryView } from '../stores/usePlaybackEntryViewStore';
+import { useMinimalistModeStore } from '../stores/useMinimalistModeStore';
 
 // src/hooks/useAppNavigation.ts
 
@@ -76,7 +77,9 @@ export const shouldReplacePlayerNavigation = (
 export const resolvePlayerCapsuleNavigationTarget = (
     view: ViewState,
     playbackEntryView: PlaybackEntryView,
+    minimalistMode = false,
 ): 'player' | 'lattice' | null => {
+    if (minimalistMode) return view === 'player' ? null : 'player';
     if (view === 'lattice') return null;
     // fb3：「留在原处」没有自己的视图，显式要求进入播放视图（胶囊、启动、bravais 的「进入」）时去播放页。
     // 私人 FM 也去 Lattice：那里换成电台墙（lattice/radio/）。
@@ -105,24 +108,28 @@ export const resolveStartupView = ({
     openPlayerOnLaunch,
     playbackEntryView,
     queueLength,
+    minimalistMode = false,
 }: {
     openPlayerOnLaunch: boolean;
     playbackEntryView: PlaybackEntryView;
     queueLength: number;
+    minimalistMode?: boolean;
 }): 'home' | 'player' | 'lattice' => {
     if (!openPlayerOnLaunch) return 'home';
     if (queueLength <= 0) return 'player';
-    return resolvePlayerCapsuleNavigationTarget('home', playbackEntryView) ?? 'player';
+    return resolvePlayerCapsuleNavigationTarget('home', playbackEntryView, minimalistMode) ?? 'player';
 };
 
 /** Whether a launch wanted Lattice but had to start on the player because the queue was not restored yet. */
 export const isStartupLatticeDeferred = ({
     openPlayerOnLaunch,
     playbackEntryView,
+    minimalistMode = false,
 }: {
     openPlayerOnLaunch: boolean;
     playbackEntryView: PlaybackEntryView;
-}): boolean => openPlayerOnLaunch && playbackEntryView === 'lattice';
+    minimalistMode?: boolean;
+}): boolean => !minimalistMode && openPlayerOnLaunch && playbackEntryView === 'lattice';
 
 // The last session is restored asynchronously (IndexedDB), so the queue is still empty when the
 // startup view is chosen; a deferred Lattice launch waits at most this long for it.
@@ -132,6 +139,7 @@ const getStartupView = (): ViewState => resolveStartupView({
     openPlayerOnLaunch: localStorage.getItem(OPEN_PLAYER_ON_LAUNCH_KEY) === 'true',
     playbackEntryView: usePlaybackEntryViewStore.getState().playbackEntryView,
     queueLength: usePlaybackStore.getState().playQueue.length,
+    minimalistMode: useMinimalistModeStore.getState().minimalistMode,
 });
 
 const LOCAL_MUSIC_LAST_ROW_KEY = 'folia_local_music_last_row';
@@ -278,6 +286,7 @@ export function useAppNavigation() {
         const startupOptions = {
             openPlayerOnLaunch: localStorage.getItem(OPEN_PLAYER_ON_LAUNCH_KEY) === 'true',
             playbackEntryView: usePlaybackEntryViewStore.getState().playbackEntryView,
+            minimalistMode: useMinimalistModeStore.getState().minimalistMode,
         };
         if (initialView === 'player' && isStartupLatticeDeferred(startupOptions)) {
             const tryUpgrade = () => {
@@ -292,8 +301,14 @@ export function useAppNavigation() {
                 }
                 if (playback.playQueue.length === 0) return;
                 cancelDeferredLattice();
+                const liveOptions = {
+                    openPlayerOnLaunch: startupOptions.openPlayerOnLaunch,
+                    playbackEntryView: usePlaybackEntryViewStore.getState().playbackEntryView,
+                    minimalistMode: useMinimalistModeStore.getState().minimalistMode,
+                };
+                if (!isStartupLatticeDeferred(liveOptions)) return;
                 const target = resolveStartupView({
-                    ...startupOptions,
+                    ...liveOptions,
                     queueLength: playback.playQueue.length,
                 });
                 if (target !== 'lattice') return;
@@ -364,6 +379,7 @@ export function useAppNavigation() {
     // entries. Every other way in shows the play queue. (Several callers are click handlers and
     // hand over the event: whatever is not 'explore' is the queue.)
     const navigateToLattice = useCallback((source?: LatticeSource) => {
+        if (useMinimalistModeStore.getState().minimalistMode) return;
         const latticeSource: LatticeSource = source === 'explore' ? 'explore' : 'queue';
         // In Personal FM the queue wall is drawn as the radio wall (Lattice.tsx).
         if (useAppViewStore.getState().view === 'lattice') return;
@@ -393,6 +409,10 @@ export function useAppNavigation() {
         // fb3「留在原处」：播放不带人去任何地方——资料库的卡片 / 墙自己显示正在播放（暂停 / 继续）。
         // 已经在播放页上（例如自动切歌）时照旧走下面的 navigateToPlayer，与另外两个值一致。
         if (entryView === 'stay' && view !== 'player') return;
+        if (useMinimalistModeStore.getState().minimalistMode) {
+            navigateToPlayer();
+            return;
+        }
         if (entryView === 'lattice' && view !== 'player') {
             navigateToLattice();
             return;
@@ -404,6 +424,7 @@ export function useAppNavigation() {
         const target = resolvePlayerCapsuleNavigationTarget(
             useAppViewStore.getState().view,
             usePlaybackEntryViewStore.getState().playbackEntryView,
+            useMinimalistModeStore.getState().minimalistMode,
         );
         if (target === 'lattice') {
             navigateToLattice();

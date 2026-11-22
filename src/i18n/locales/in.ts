@@ -518,6 +518,8 @@ export default {
     "coverColorDefault": "Menggunakan warna bawaan",
     "staticModeOn": "Mode statis diaktifkan",
     "staticModeOff": "Mode statis dimatikan",
+    "minimalistModeOn": "Mode minimalis diaktifkan",
+    "minimalistModeOff": "Kembali ke mode penuh",
     "homeBgDisabled": "Latar belakang dinamis beranda dimatikan",
     "homeBgEnabled": "Latar belakang dinamis beranda diaktifkan",
     "autoBestLyricOn": "Fitur lirik terbaik otomatis diaktifkan",
@@ -1206,6 +1208,8 @@ export default {
       "settings-toggle-lattice-auto-focus": { "title": "Lattice fokus otomatis", "description": "Alihkan apakah kolase antrean mengikuti lagu yang diputar saat lagu berganti" },
       "lattice-poster-tint": { "title": "Warna dinding poster", "description": "Sesuaikan lapisan warna pada poster di luar fokus di kolase antrean (Lattice) dan dinding pustaka" },
       "settings-reduce-motion": { "title": "Kurangi gerakan", "description": "Turunkan animasi pada tiap permukaan yang memilikinya, atau ikuti pengaturan sistem" },
+      "settings-minimalist-mode": { "title": "Pengaturan mode minimalis", "description": "Buka sakelar Mode Minimalis di Grafik & Performa" },
+      "minimalist-mode-toggle": { "title": "Alihkan mode minimalis", "description": "Beralih antara Mode Minimalis (hemat daya, tampilan pemutar standar) dan Mode Penuh" },
       "settings-toggle-reduce-lattice-motion": { "title": "Kurangi gerakan kolase antrean", "description": "Ubah ekspansi, penerbangan kamera dan gelombang masuk kolase antrean menjadi seketika" },
       "settings-toggle-follow-system-reduced-motion": { "title": "Ikuti pengurangan gerakan sistem", "description": "Alihkan apakah pengaturan animasi sistem boleh mengurangi gerakan di aplikasi" },
       "settings-toggle-track-switch-buttons": { "title": "Selalu tampilkan panah pengganti trek", "description": "Alihkan apakah panah pengganti trek tetap terlihat di samping judul" },
@@ -2784,6 +2788,8 @@ export default {
     "staticMode": "Mode Statis",
     "enableStaticMode": "Mode Statis",
     "enableStaticModeDesc": "Menonaktifkan latar belakang geometris untuk menghemat sumber daya",
+    "enableMinimalistMode": "Mode Minimalis",
+    "enableMinimalistModeDesc": "Mematikan animasi, blur waktu nyata, dan kanvas visual untuk menghemat baterai serta memori dengan tampilan pemutar musik standar",
     "settingsSearchPlaceholder": "Cari pengaturan",
     "settingsSearchClear": "Hapus pencarian",
     "settingsSearchEmpty": "Tidak ada pengaturan yang cocok",
@@ -4910,6 +4916,7 @@ export default {
     "sortAscending": "Menaik",
     "sortDescending": "Menurun",
     "importFolder": "Impor Folder",
+    "scanDeviceMusic": "Pindai Musik Perangkat",
     "importing": "Mengimpor...",
     "importPlaylist": "Impor Playlist",
     "importingPlaylist": "Mengimpor playlist...",
@@ -7083,6 +7090,64 @@ export default {
         "drag": "Seret kartu untuk mengatur urutan. Kartu hanya berpindah di dalam kelompoknya sendiri, dan menempel ke tempat terdekat saat dilepas. Di layar sentuh, tekan lama kartu sampai terangkat, lalu seret.",
         "select": "Seret kotak di tempat kosong untuk memilih kartu di dalamnya; {{mod}}-klik sebuah kartu untuk menambah atau menguranginya. Sebuah panel mengambang di samping kartu yang dipilih: tambahkan ke antrean, tambahkan ke daftar putar, keluarkan, batalkan pilihan. Bila pilihan berasal dari sumber berbeda, tambahkan ke daftar putar menjadi abu-abu."
       }
+    }
+  },
+  "minimalist": {
+    "badge": "Minimalis",
+    "navAriaLabel": "Navigasi Mode Minimalis",
+    "commandPaletteLabel": "Palet Perintah",
+    "exitToFull": "Kembali ke Mode Penuh",
+    "exitToFullShort": "Mode Penuh",
+    "onboardingShortcutTitle": "Mode Minimalis Hemat Daya",
+    "onboardingShortcutDesc": "Matikan animasi berat dan gunakan antarmuka pemutar musik biasa",
+    "onboardingShortcutAction": "Pakai Minimalis",
+    "tabs": {
+      "discover": "Jelajahi",
+      "library": "Pustaka",
+      "search": "Cari",
+      "profile": "Saya"
+    },
+    "discover": {
+      "personalFm": "FM Pribadi",
+      "signIn": "Masuk ke {{provider}}",
+      "empty": "Belum ada rekomendasi",
+      "openLibrary": "Buka Pustaka"
+    },
+    "search": {
+      "recent": "Pencarian Terakhir",
+      "clearHistory": "Hapus",
+      "removeHistoryItem": "Hapus riwayat pencarian",
+      "noResults": "Tidak ada hasil yang cocok"
+    },
+    "collection": {
+      "tracksUnit": "lagu",
+      "playAll": "Putar Semua",
+      "filterPlaceholder": "Saring lagu",
+      "empty": "Tidak ada lagu"
+    },
+    "profile": {
+      "modeCardTitle": "Mode Minimalis Aktif",
+      "modeCardDesc": "Shader latar belakang, efek blur, dan animasi berat telah dimatikan.",
+      "accountsSection": "Platform Musik",
+      "settingsSection": "Preferensi",
+      "allSettings": "Semua Pengaturan",
+      "navidromeIntegration": "Server Navidrome",
+      "enabled": "Aktif",
+      "disabled": "Nonaktif"
+    },
+    "player": {
+      "coverView": "Tampilan Sampul",
+      "lyricsView": "Tampilan Lirik",
+      "noLyrics": "Lirik tidak tersedia",
+      "addToPlaylist": "Simpan ke Daftar Putar",
+      "addToQueue": "Tambah ke Antrean",
+      "moveNext": "Putar Berikutnya",
+      "removeTrack": "Hapus",
+      "queueTitle": "Antrean Putar",
+      "shuffle": "Acak",
+      "emptyQueue": "Antrean kosong",
+      "seek": "Geser posisi putar",
+      "close": "Tutup"
     }
   }
 } as const;

@@ -19,6 +19,8 @@ type PlayerVisualizerMountInput = {
     hasLibraryOcclusionSettled: boolean;
     /** 翻牌交接要求 visualizer 挂着（首页墙的窗还开着 / 马上要开）。 */
     handoffKeepsVisualizer?: boolean;
+    /** 极简模式启用时不挂载播放页视觉背景与歌词画布。 */
+    minimalistMode?: boolean;
 };
 
 /** visualizer 是否挂载。三项遮挡条件缺一不可，任何一项失效都立即恢复挂载；交接要求挂着时一定挂着。 */
@@ -29,8 +31,11 @@ export const shouldMountPlayerVisualizer = ({
     libraryOccludesPlayer,
     hasLibraryOcclusionSettled,
     handoffKeepsVisualizer = false,
-}: PlayerVisualizerMountInput) => handoffKeepsVisualizer || (
-    currentView !== 'lattice'
-    && hasLatticeExited
-    && !(shouldRevealHomeSurface && libraryOccludesPlayer && hasLibraryOcclusionSettled)
+    minimalistMode = false,
+}: PlayerVisualizerMountInput) => !minimalistMode && (
+    handoffKeepsVisualizer || (
+        currentView !== 'lattice'
+        && hasLatticeExited
+        && !(shouldRevealHomeSurface && libraryOccludesPlayer && hasLibraryOcclusionSettled)
+    )
 );

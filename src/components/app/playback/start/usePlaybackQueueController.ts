@@ -322,9 +322,6 @@ export function usePlaybackQueueController({
     const isFmMode = usePlaybackStore(state => state.isFmMode);
     // 私人 FM 的当前曲目落到队列最后两首就提前续歌，不只在「下一首」时（直接点了后面的一首也续上）。
     usePersonalFmLookahead(isNowPlayingStageActive);
-    const searchQuery = useSearchNavigationStore(state => state.searchQuery);
-    const searchSourceTab = useSearchNavigationStore(state => state.searchSourceTab);
-    const searchReturnView = useSearchNavigationStore(state => state.searchReturnView);
 
     const [pendingUnavailableReplacement, setPendingUnavailableReplacement] = useState<UnavailableReplacementRequest | null>(null);
 
@@ -1268,11 +1265,14 @@ export function usePlaybackQueueController({
     }, [playQueue, playSong]);
 
     const handleSearchOverlaySubmit = useCallback(async (requestedSource?: SearchSource, requestedKind?: SearchKind) => {
-        const trimmedQuery = searchQuery.trim();
+        // Read latest store values so synchronous triggers (e.g. search history chips) never submit a stale closure query.
+        const currentSearch = useSearchNavigationStore.getState();
+        const trimmedQuery = currentSearch.searchQuery.trim();
         if (!trimmedQuery) {
             return;
         }
-        const sourceTab = requestedSource ?? searchSourceTab;
+        const sourceTab = requestedSource ?? currentSearch.searchSourceTab;
+        const returnView = currentSearch.searchReturnView;
 
         const didSearch = await searchDeps.submitSearch({
             query: trimmedQuery,
@@ -1283,7 +1283,7 @@ export function usePlaybackQueueController({
                 localLibraryCatalog,
                 t: (key, fallback) => t(key, fallback ?? ''),
             },
-            returnView: searchReturnView,
+            returnView,
         });
 
         if (didSearch) {
@@ -1291,7 +1291,7 @@ export function usePlaybackQueueController({
                 query: trimmedQuery,
                 sourceTab,
                 replace: Boolean(window.history.state?.search),
-                returnView: searchReturnView,
+                returnView,
             });
         }
     }, [
@@ -1299,9 +1299,6 @@ export function usePlaybackQueueController({
         localSongs,
         navigateToSearch,
         searchDeps,
-        searchQuery,
-        searchReturnView,
-        searchSourceTab,
         t,
     ]);
 

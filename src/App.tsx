@@ -209,6 +209,9 @@ import { runsOnWindows } from './utils/platform';
 import { useNativeBackButton } from './hooks/useNativeBackButton';
 import { useNativeMediaActions } from './hooks/useNativeMediaActions';
 import { useColorOsLyricFeed } from './hooks/useColorOsLyricFeed';
+import { useMinimalistModeStore } from './stores/useMinimalistModeStore';
+import { useMinimalistModeEffects } from './components/minimalist/useMinimalistModeEffects';
+import MinimalistAppHost from './components/minimalist/MinimalistAppHost';
 
 const LOCAL_MUSIC_UPDATED_EVENT = 'folia-local-music-updated';
 const DEV_DEBUG_SHORTCUT_LABEL = 'Alt+Shift+D';
@@ -750,6 +753,8 @@ export default function App() {
         popCollectionTo,
         backCollection,
     } = useAppNavigation();
+    const minimalistMode = useMinimalistModeStore(state => state.minimalistMode);
+    useMinimalistModeEffects({ minimalistMode, navigateToHome });
     const reduceLatticeMotion = useReducedMotionFor('lattice');
     const visualizerAroundWall = useVisualizerAroundWall();
 
@@ -1513,30 +1518,6 @@ export default function App() {
         onLike: handleLike,
     });
 
-    usePlaybackVisualizerBridge({
-        audioRef,
-        analyserRef,
-        isTransitionAudible: automix.isTransitionAudible,
-        // The loop below is what actually drives the progress bar and the lyric read-head, sixty
-        // times a second off whichever deck it is pointed at. Both have to be the held picture's,
-        // or the bar and the lyrics run on the incoming track under the outgoing one's title.
-        getDisplayElement: automix.getDisplayElement,
-        animationFrameRef,
-        effectiveLoopMode,
-        isNowPlayingStageActive,
-        isPlayerCapStageActive,
-        stageActiveEntryKind,
-        stageLyricsSession,
-        stageLyricsClockRef,
-        getSyntheticStageLyricsTime,
-        syncStageLyricsClock,
-        getNowPlayingDisplayTime,
-        getPlayerCapDisplayTime,
-        syncNowPlayingClock,
-        lyricTimelineOffsetMs: effectiveLyricTimelineOffsetMs,
-        incomingLyricTimelineOffsetMs,
-    });
-
     const {
         togglePlay,
         toggleLoop,
@@ -1842,7 +1823,7 @@ export default function App() {
     }, lyricSegmentationActions);
     const commandPalette = useCommandPalette({
         isBlocked: isSettingsModalOpen
-            || (currentView === 'home' && isSearchOpen)
+            || (!minimalistMode && currentView === 'home' && isSearchOpen)
             || isLyricMatchOpen
             || Boolean(pendingUnavailableReplacement),
         context: commandPaletteContext,
@@ -2491,6 +2472,34 @@ export default function App() {
         libraryOccludesPlayer,
         hasLibraryOcclusionSettled,
         handoffKeepsVisualizer: wallHandoff.keepsVisualizer,
+        minimalistMode,
+    });
+
+    usePlaybackVisualizerBridge({
+        audioRef,
+        analyserRef,
+        isTransitionAudible: automix.isTransitionAudible,
+        // The loop below is what actually drives the progress bar and the lyric read-head, sixty
+        // times a second off whichever deck it is pointed at. Both have to be the held picture's,
+        // or the bar and the lyrics run on the incoming track under the outgoing one's title.
+        getDisplayElement: automix.getDisplayElement,
+        animationFrameRef,
+        effectiveLoopMode,
+        isNowPlayingStageActive,
+        isPlayerCapStageActive,
+        stageActiveEntryKind,
+        stageLyricsSession,
+        stageLyricsClockRef,
+        getSyntheticStageLyricsTime,
+        syncStageLyricsClock,
+        getNowPlayingDisplayTime,
+        getPlayerCapDisplayTime,
+        syncNowPlayingClock,
+        lyricTimelineOffsetMs: effectiveLyricTimelineOffsetMs,
+        incomingLyricTimelineOffsetMs,
+        visualizerMounted: shouldMountVisualizer,
+        minimalistMode,
+        obsRendering: isObsBrowserSourceRendering,
     });
     // 首页墙透出来的 visualizer 加模糊（bravais「墙后的画面」，stage 报告；只在首页墙露着时）。
     const libraryBackdropBlur = useLibraryPlayerOcclusionStore(state => selectLibraryPlayerBackdrop(state).blur);
@@ -2826,6 +2835,57 @@ export default function App() {
                 {renderAudioDeck('B', automix.registerDeckB)}
             </>}
         >
+            {minimalistMode ? (
+                <MinimalistAppHost
+                    workspace={{
+                        homeModel,
+                        currentView,
+                        navigateBackFromPlayer,
+                        navigateToPlayer,
+                        theme,
+                        isDaylight,
+                        toggleDaylightMode,
+                        currentSong: playerDisplayCurrentSong,
+                        playQueue: playerDisplayQueue,
+                        playerState: displayPlayerState,
+                        duration: displayDuration,
+                        effectiveLoopMode,
+                        lyrics: commandPaletteContext.shared.lyrics,
+                        currentLineIndex,
+                        isLiked: commandPaletteContext.playback.isSongLiked,
+                        canTogglePlayback: canToggleCurrentPlayback,
+                        isControlDisabled: isNowPlayingControlDisabled,
+                        togglePlay,
+                        toggleLoop,
+                        onPrevTrack: handlePrevTrack,
+                        onNextTrack: () => { void handleNextTrack(); },
+                        shuffleQueue,
+                        onLike: () => { void handleLike(); },
+                        onSeek: seekMainAudio,
+                        playSong: (song, queue) => { void playSong(song, queue); },
+                        removeQueueSong,
+                        moveQueueSongToNext,
+                        openLyricMatch,
+                        openCommandPalette: () => commandPalette.open(),
+                        onSubmitSearch: (source, kind) => { void handleSearchOverlaySubmit(source, kind); },
+                        onLoadMoreSearch: () => { void handleSearchLoadMore(); },
+                        onPlaySearchResult: handleSearchResultPlay,
+                        onAddSearchResultToQueue: handleSearchResultAddToQueue,
+                        onOpenSearchArtist: (track, artistName, artistId, entityId) => {
+                            void handleSearchResultArtistOpen(track, artistName, artistId, entityId);
+                        },
+                        onOpenSearchAlbum: (track, albumName, albumId, entityId) => {
+                            void handleSearchResultAlbumOpen(track, albumName, albumId, entityId);
+                        },
+                        onOpenSearchCollection: handleSearchResultCollectionOpen,
+                        resolveSearchResultDisplay,
+                        hasLocalSongs: localSongs.length > 0,
+                    }}
+                    debugOverlay={appOverlaysModel.debugOverlay}
+                    memoryMonitor={appOverlaysModel.memoryMonitor}
+                />
+            ) : (
+                <>
 
             {/* 首页层、Lattice 与两面墙共用的右下角工具按钮（WallToolsDock：交接时按钮节点不重建）。 */}
             <WallToolsDockHost host={wallToolsHost}>
@@ -2990,6 +3050,20 @@ export default function App() {
 
             <ThemeQuickEditorHost onSaveAiTheme={saveEditedAiDualTheme} onSaveCustomTheme={saveCustomDualTheme} />
 
+            {/* 速记簿：左缘的把手与滑出的抽屉，非模态，三个视图里都在；播放页隐藏 UI 时把手跟着藏起来。 */}
+            <ScratchpadHost
+                isDaylight={isDaylight}
+                playback={scratchpadPlayback}
+                queue={scratchpadQueue}
+                isHandleHidden={currentView === 'player' && isPlayerChromeHidden}
+            />
+
+            {/* With 自动 AI 分词 on, segments a song that has no saved split by itself (issue #960). */}
+            <AutoLyricSegmentationHost visualizerMode={visualizerMode} isLyricsLoading={isLyricsLoading} save={lyricSegmentationActions.save} />
+            <TrackEndCountdownHost enabled={stageTrackPillOnScreen && nextUpTrack !== null} duration={displayDuration} />
+                </>
+            )}
+
             {/* Mounted here rather than inside the panel that used to own it: the picker answers a
                 question about the current song, and a shortcut has to reach it with the panel shut. */}
             <AddToPlaylistHost
@@ -3001,14 +3075,6 @@ export default function App() {
                 onCreateOnlinePlaylistWithSongs={createOnlinePlaylistWithSongs}
                 onAddSongsToNavidromePlaylist={addPickedSongsToNavidromePlaylist}
                 onCreateNavidromePlaylistWithSongs={createNavidromePlaylistWithSongs}
-            />
-
-            {/* 速记簿：左缘的把手与滑出的抽屉，非模态，三个视图里都在；播放页隐藏 UI 时把手跟着藏起来。 */}
-            <ScratchpadHost
-                isDaylight={isDaylight}
-                playback={scratchpadPlayback}
-                queue={scratchpadQueue}
-                isHandleHidden={currentView === 'player' && isPlayerChromeHidden}
             />
 
             <CommandPalette
@@ -3051,9 +3117,6 @@ export default function App() {
             />
             <UserGuideModal theme={theme} />
             <PlaybackEntryViewPrompt theme={theme} />
-            {/* With 自动 AI 分词 on, segments a song that has no saved split by itself (issue #960). */}
-            <AutoLyricSegmentationHost visualizerMode={visualizerMode} isLyricsLoading={isLyricsLoading} save={lyricSegmentationActions.save} />
-            <TrackEndCountdownHost enabled={stageTrackPillOnScreen && nextUpTrack !== null} duration={displayDuration} />
         </AppShell>
     );
 }

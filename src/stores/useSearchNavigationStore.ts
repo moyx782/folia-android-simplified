@@ -79,6 +79,7 @@ interface SearchNavigationState {
     clearSearchHistory: () => void;
     setHomeViewTab: (tab: HomeViewTab) => void;
     setSearchQuery: (query: string) => void;
+    setSearchTarget: (sourceTab: SearchSource, kind?: SearchKind) => void;
     setSearchScrollTop: (scrollTop: number) => void;
     restoreSearch: (payload: { query: string; sourceTab: SearchSource; kind?: SearchKind; returnView?: SearchReturnView; }) => void;
     hideSearchOverlay: () => void;
@@ -297,6 +298,10 @@ export const useSearchNavigationStore = create<SearchNavigationState>((set, get)
         set({ homeViewTab: tab });
     },
     setSearchQuery: (query) => set({ searchQuery: query }),
+    setSearchTarget: (sourceTab, kind) => set(state => ({
+        searchSourceTab: sourceTab,
+        searchKind: resolveSearchKind(sourceTab, kind ?? state.searchKind),
+    })),
     setSearchScrollTop: (scrollTop) => set(state => {
         // 滚的是按 submittedQuery 搜出来的那组结果；输入框里改了字也还是它。
         const cacheKey = getSearchCacheKey(state.submittedQuery, state.searchSourceTab, state.searchKind);

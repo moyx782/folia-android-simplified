@@ -1,9 +1,11 @@
 import React, { useCallback, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { Zap } from 'lucide-react';
 import { PlaybackEntryViewOptions } from './PlaybackEntryViewOptions';
 import { LibrarySuiteOnboardingOptions } from './LibrarySuiteOnboardingOptions';
 import { usePlaybackEntryViewStore, type StartupPromptPage } from '../../../stores/usePlaybackEntryViewStore';
+import { useMinimalistModeStore } from '../../../stores/useMinimalistModeStore';
 import { useThemeSettingsStore } from '../../../stores/useThemeSettingsStore';
 import { resolveReducedMotion, useMotionSettingsStore } from '../../../stores/useMotionSettingsStore';
 import { confirmOnboardingLibrarySuite } from '../../../library/app/librarySuiteChoice';
@@ -131,7 +133,32 @@ const PromptPanel: React.FC<{ theme?: Theme | null; pages: readonly PromptPage[]
 
                     <div className="mt-5">
                         {page === 'library-suite' ? (
-                            <LibrarySuiteOnboardingOptions isDaylight={isDaylight} accentColor={accentColor} />
+                            <>
+                                <LibrarySuiteOnboardingOptions isDaylight={isDaylight} accentColor={accentColor} />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        useMinimalistModeStore.getState().handleToggleMinimalistMode(true);
+                                        onClose();
+                                    }}
+                                    className={`mt-3 w-full flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 text-left transition-colors ${
+                                        isDaylight
+                                            ? 'border-zinc-200/80 bg-zinc-50 hover:bg-zinc-100 text-zinc-800'
+                                            : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-zinc-100'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <Zap className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+                                        <div className="min-w-0">
+                                            <div className="text-xs font-medium">{t('minimalist.onboardingShortcutTitle')}</div>
+                                            <div className={`text-[11px] truncate ${textSecondary}`}>{t('minimalist.onboardingShortcutDesc')}</div>
+                                        </div>
+                                    </div>
+                                    <span className="text-xs font-medium shrink-0" style={{ color: accentColor }}>
+                                        {t('minimalist.onboardingShortcutAction')}
+                                    </span>
+                                </button>
+                            </>
                         ) : (
                             <PlaybackEntryViewOptions
                                 value={playbackEntryView}

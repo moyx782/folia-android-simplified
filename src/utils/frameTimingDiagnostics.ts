@@ -23,6 +23,9 @@ const LONG_TASK_THRESHOLD_MS = 50;
 const LONG_ANIMATION_FRAME_THRESHOLD_MS = 50;
 /** 触摸/滚动结束后仍算「移动中」的余量：一次滑动收尾的那几帧同样是用户看到的掉帧。 */
 const MOTION_WINDOW_MS = 250;
+const STARTUP_SAMPLE_WINDOW_MS = 5000;
+const MOTION_SAMPLE_WINDOW_MS = 1500;
+const RESUME_SAMPLE_WINDOW_MS = 3000;
 const MOTION_INTERVAL_CAPACITY = 2048;
 /** 逐秒帧率时间线：300 个点 = 最近 5 分钟，和原生的刷新率日志同一个窗口。 */
 const FPS_HISTORY_CAPACITY = 300;
@@ -263,12 +266,16 @@ const readMotionIntervals = (): number[] => {
     return out;
 };
 
+let sampleUntilMs = 0;
+let visibleEpochMs: number | null = null;
+
 /**
  * 触摸拖动 / 滚动开始。接下来 MOTION_WINDOW_MS 内的帧会单独统计：
  * 「日常播放不卡、一移动就掉帧」这种反馈只有把这段拆出来才看得见。
  */
 export const noteMotionActivity = (): void => {
     motionUntilMs = nowMs() + MOTION_WINDOW_MS;
+    armFrameSampling(MOTION_SAMPLE_WINDOW_MS);
 };
 
 const isMotionActive = (atMs: number): boolean => atMs <= motionUntilMs;
@@ -502,31 +509,53 @@ const onFrame = (timestamp: number): void => {
     frameLoopHandle = null;
     if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
     const tickAtMs = nowMs();
-    if (lastTickAtMs !== null) visibleMs += Math.max(0, tickAtMs - lastTickAtMs);
+    if (visibleEpochMs !== null) visibleMs += Math.max(0, tickAtMs - visibleEpochMs);
+    visibleEpochMs = tickAtMs;
     lastTickAtMs = tickAtMs;
     frameCount += 1;
     if (lastFrameAt !== null) noteFrameSample(timestamp - lastFrameAt, timestamp);
     lastFrameAt = timestamp;
+    if (tickAtMs >= sampleUntilMs) {
+        // 采样窗口结束即停掉 rAF 循环，等待交互或切回前台再唤醒，避免静止界面 60-120Hz 空转。
+        lastFrameAt = null;
+        lastTickAtMs = null;
+        return;
+    }
     frameLoopHandle = nativeRequestAnimationFrame(onFrame);
 };
 
-const onVisibilityChange = (): void => {
-    if (typeof document === 'undefined') return;
-    if (document.visibilityState === 'hidden') {
-        hiddenSinceMs = nowMs();
-        stopFrameLoop();
-        return;
-    }
-    if (hiddenSinceMs !== null) {
-        hiddenMs += Math.max(0, nowMs() - hiddenSinceMs);
-        hiddenSinceMs = null;
-    }
-    // 后台期间的时间不算帧间隔，恢复后从新的一帧重新起算。
+function armFrameSampling(durationMs: number): void {
+    const until = nowMs() + durationMs;
+    if (until > sampleUntilMs) sampleUntilMs = until;
+    if (!installed) return;
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+    if (frameLoopHandle !== null) return;
     lastFrameAt = null;
     lastTickAtMs = null;
     bucketStartedAt = null;
     bucketFrames = 0;
-    if (frameLoopHandle === null) frameLoopHandle = nativeRequestAnimationFrame(onFrame);
+    frameLoopHandle = nativeRequestAnimationFrame(onFrame);
+}
+
+const onVisibilityChange = (): void => {
+    if (typeof document === 'undefined') return;
+    const now = nowMs();
+    if (document.visibilityState === 'hidden') {
+        if (visibleEpochMs !== null) {
+            visibleMs += Math.max(0, now - visibleEpochMs);
+            visibleEpochMs = null;
+        }
+        hiddenSinceMs = now;
+        stopFrameLoop();
+        return;
+    }
+    if (hiddenSinceMs !== null) {
+        hiddenMs += Math.max(0, now - hiddenSinceMs);
+        hiddenSinceMs = null;
+    }
+    visibleEpochMs = now;
+    // 后台期间的时间不算帧间隔，恢复后开启一次短暂的帧采样窗口重新起算。
+    armFrameSampling(RESUME_SAMPLE_WINDOW_MS);
 };
 
 const installLongTaskObserver = (): void => {
@@ -616,12 +645,18 @@ export const installFrameTimingDiagnostics = (): void => {
     installedAtMs = nowMs();
     installLongTaskObserver();
     installLongAnimationFrameObserver();
-    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') hiddenSinceMs = nowMs();
-    else frameLoopHandle = nativeRequestAnimationFrame(onFrame);
+    sampleUntilMs = nowMs() + STARTUP_SAMPLE_WINDOW_MS;
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        hiddenSinceMs = nowMs();
+        visibleEpochMs = null;
+    } else {
+        visibleEpochMs = nowMs();
+        frameLoopHandle = nativeRequestAnimationFrame(onFrame);
+    }
     if (typeof document !== 'undefined') {
         visibilityListener = onVisibilityChange;
         document.addEventListener('visibilitychange', visibilityListener);
-        // 捕获阶段监听：列表、3D 网格这些内部滚动容器的 scroll 事件也会冒到这里。
+        // 捕获阶段监听：列表、3D 网格这些内部滚动容器的 scroll/touchmove 事件也会冒到这里。
         motionListener = noteMotionActivity;
         document.addEventListener('scroll', motionListener, { capture: true, passive: true });
         document.addEventListener('touchmove', motionListener, { capture: true, passive: true });
@@ -636,11 +671,13 @@ export const resetFrameTimingDiagnostics = (): void => {
     }
     visibilityListener = null;
     if (motionListener && typeof document !== 'undefined') {
-        document.removeEventListener('scroll', motionListener, { capture: true } as EventListenerOptions);
-        document.removeEventListener('touchmove', motionListener, { capture: true } as EventListenerOptions);
+        document.removeEventListener('scroll', motionListener, { capture: true });
+        document.removeEventListener('touchmove', motionListener, { capture: true });
     }
     motionListener = null;
     installed = false;
+    sampleUntilMs = 0;
+    visibleEpochMs = null;
     intervalCursor = 0;
     intervalCount = 0;
     motionCursor = 0;
@@ -681,10 +718,11 @@ export const readFrameTimingSnapshot = (): FrameTimingSnapshot => {
         : null;
     const rawMemory = (navigatorRef as (Navigator & { deviceMemory?: number }) | null)?.deviceMemory;
     const memoryGb = typeof rawMemory === 'number' && Number.isFinite(rawMemory) ? rawMemory : null;
+    const liveVisibleMs = visibleEpochMs !== null ? Math.max(0, nowMs() - visibleEpochMs) : 0;
     return {
         installed,
         installedAtMs,
-        visibleMs,
+        visibleMs: visibleMs + liveVisibleMs,
         hiddenMs,
         frameCount,
         intervals,

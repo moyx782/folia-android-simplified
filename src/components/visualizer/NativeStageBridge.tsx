@@ -1,6 +1,7 @@
 import React from 'react';
 import { IS_ANDROID_WEBVIEW } from '../../utils/platform';
 import { useDesktopSettingsStore } from '../../stores/useDesktopSettingsStore';
+import { useMinimalistModeStore } from '../../stores/useMinimalistModeStore';
 import { useThemeSettingsStore } from '../../stores/useThemeSettingsStore';
 import { useVisualizerSettingsStore } from '../../stores/useVisualizerSettingsStore';
 import { PlayerState } from '../../types';
@@ -37,7 +38,9 @@ html.folia-native-stage [data-testid="player-visual-surface"] {
 };
 
 const NativeStageBridge: React.FC = () => {
-    const enabled = useDesktopSettingsStore(state => state.nativeStageEnabled);
+    const storedEnabled = useDesktopSettingsStore(state => state.nativeStageEnabled);
+    const minimalistMode = useMinimalistModeStore(state => state.minimalistMode);
+    const enabled = storedEnabled && !minimalistMode;
     const song = usePlaybackStore(state => state.currentSong);
     const lyrics = usePlaybackStore(selectDisplayLyrics);
     const lineIndex = usePlaybackStore(state => state.currentLineIndex);

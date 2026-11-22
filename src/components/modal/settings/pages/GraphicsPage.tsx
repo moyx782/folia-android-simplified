@@ -6,6 +6,7 @@ import { MOTION_SURFACE_IDS, useMotionSettingsStore, type MotionSurfaceId } from
 import { useDesktopSettingsStore } from '../../../../stores/useDesktopSettingsStore';
 import { usePlayerChromeSettingsStore } from '../../../../stores/usePlayerChromeSettingsStore';
 import { useThemeSettingsStore } from '../../../../stores/useThemeSettingsStore';
+import { useMinimalistModeStore } from '../../../../stores/useMinimalistModeStore';
 import { useVisualizerSettingsStore } from '../../../../stores/useVisualizerSettingsStore';
 import type { LyricAntialias } from '../../../../types';
 import { VISUALIZER_FRAME_RATE_OPTIONS } from '../../../../utils/frameRateLimiter';
@@ -40,6 +41,7 @@ const MOTION: SettingsGroupDef = { id: 'graphicsMotion', titleKey: 'options.redu
 
 const O = {
     perfCheck: option(PERFORMANCE, 'perfCheck', 'options.perfCheck'),
+    minimalistMode: option(PERFORMANCE, 'enableMinimalistMode', 'options.enableMinimalistMode'),
     staticMode: option(PERFORMANCE, 'enableStaticMode', 'options.enableStaticMode'),
     homeBackground: option(PERFORMANCE, 'disableHomeDynamicBackground', 'options.disableHomeDynamicBackground'),
     nativeBlur: option(PERFORMANCE, 'enablePlayerPageNativeBlur', 'options.enablePlayerPageNativeBlur'),
@@ -99,6 +101,8 @@ const GraphicsPage: React.FC = () => {
         setSurface: state.handleToggleReducedMotionSurface,
         setFollowSystem: state.handleToggleFollowSystemReducedMotion,
     })));
+    const minimalistMode = useMinimalistModeStore(state => state.minimalistMode);
+    const setMinimalistMode = useMinimalistModeStore(state => state.handleToggleMinimalistMode);
     // Native blur can drop frames on some GPUs, so switching it on asks first.
     const [nativeBlurAsking, setNativeBlurAsking] = useState(false);
     const frameRateLimited = visualizer.frameRate !== 'off';
@@ -111,6 +115,9 @@ const GraphicsPage: React.FC = () => {
                         <Button onClick={() => openPerfCheck()}>{t('options.perfCheckRun')}</Button>
                     </Row>
                 )}
+                <Row option={O.minimalistMode} hint={t('options.enableMinimalistModeDesc')}>
+                    <Toggle checked={minimalistMode} onChange={setMinimalistMode} />
+                </Row>
                 <Row option={O.staticMode} hint={t('options.enableStaticModeDesc')}>
                     <Toggle checked={theme.staticMode} onChange={theme.setStaticMode} />
                 </Row>

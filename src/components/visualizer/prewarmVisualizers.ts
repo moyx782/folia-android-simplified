@@ -1,4 +1,7 @@
 import { useVisualizerSettingsStore } from '../../stores/useVisualizerSettingsStore';
+import { useThemeSettingsStore } from '../../stores/useThemeSettingsStore';
+import { useMinimalistModeStore } from '../../stores/useMinimalistModeStore';
+import { IS_ANDROID_WEBVIEW, isAndroidNativeRuntime } from '../../utils/platform';
 import { VISUALIZER_REGISTRY, getVisualizerRegistryEntry, type VisualizerRegistryEntry } from './registry';
 
 // src/components/visualizer/prewarmVisualizers.ts
@@ -22,6 +25,7 @@ const run = (entry: VisualizerRegistryEntry) => {
 
 /** 保存的那个样式：主窗口启动时调一次（bootstrap.tsx）。 */
 export const prewarmSavedVisualizer = (): void => {
+    if (useMinimalistModeStore.getState().minimalistMode || useThemeSettingsStore.getState().staticMode) return;
     const { visualizerMode } = useVisualizerSettingsStore.getState();
     const entry = getVisualizerRegistryEntry(visualizerMode);
     // 存着的模式没注册时注册表退回默认样式：那不是保存的样式，不替它准备
@@ -34,6 +38,14 @@ let idleScheduled = false;
 /** 其他声明了 `prewarmWhenIdle` 的样式：首屏挂好时调（bootstrap.tsx），过一会儿等页面空闲再准备；再调（StrictMode 下 effect 跑两遍）不再排。 */
 export const prewarmVisualizersWhenIdle = (): void => {
     if (idleScheduled) return;
+    if (
+        useMinimalistModeStore.getState().minimalistMode
+        || useThemeSettingsStore.getState().staticMode
+        || IS_ANDROID_WEBVIEW
+        || isAndroidNativeRuntime()
+    ) {
+        return;
+    }
     idleScheduled = true;
     setTimeout(() => {
         const start = () => {

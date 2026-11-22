@@ -5,6 +5,16 @@ import { findLatestActiveLineIndex } from '../../../../utils/appPlaybackHelpers'
 import { PlayerState } from '../../../../types';
 
 const EMPTY_FREQUENCY_DATA = new Uint8Array(0);
+
+const zeroAudioBands = () => {
+    audioPower.set(0);
+    audioBands.bass.set(0);
+    audioBands.lowMid.set(0);
+    audioBands.mid.set(0);
+    audioBands.vocal.set(0);
+    audioBands.treble.set(0);
+    audioBands.spectrum.set(EMPTY_FREQUENCY_DATA);
+};
 import type { AudioBands, LyricData, StageLyricsSession } from '../../../../types';
 import { setCurrentLineIndex, setHandoffLineIndex, setPlayerState } from '../../../../stores/usePlaybackStore';
 import { selectDisplayLyrics, usePlaybackStore } from '../../../../stores/usePlaybackStore';
@@ -23,6 +33,7 @@ import { useBeatFxTrack } from '../../../../hooks/useBeatFxTrack';
 import { readIncomingLyricClock } from './incomingLyricClock';
 import { isBackgroundLyricHeld, setHeldLyricTime, useBackgroundLyricHoldStore } from '../../backgroundThrottling/backgroundLyricHoldStore';
 import { getHifiPosition } from '../../../../services/hifi/hifiPlayback';
+import { getObservedMedia } from '../../../../services/hifi/hifiMediaShim';
 import { getExternalPosition, isExternalPlaybackSounding } from '../../../../services/onlineMusic/externalPlayback';
 
 // src/components/app/playback/bridges/usePlaybackVisualizerBridge.ts
@@ -33,6 +44,7 @@ import { getExternalPosition, isExternalPlaybackSounding } from '../../../../ser
  * where frames stop.
  */
 const HELD_TICK_MS = 250;
+const MINIMALIST_TICK_MS = 100;
 
 type UsePlaybackVisualizerBridgeParams = {
 
@@ -73,6 +85,12 @@ type UsePlaybackVisualizerBridgeParams = {
      * read-head near zero under a song that is three minutes in.
      */
     getDisplayElement?: () => HTMLAudioElement | null;
+    /** Whether any visualizer or spectrum consumer is currently mounted. */
+    visualizerMounted?: boolean;
+    /** Whether Minimalist Mode is active (throttles clock updates and skips spectrum FFT). */
+    minimalistMode?: boolean;
+    /** Whether OBS Browser Source is currently reading live spectrum bands from motion signals. */
+    obsRendering?: boolean;
 };
 
 // Runs the requestAnimationFrame loop for audio-reactive visuals and lyric timing.
@@ -95,6 +113,9 @@ export function usePlaybackVisualizerBridge({
     incomingLyricTimelineOffsetMs = lyricTimelineOffsetMs,
     isTransitionAudible,
     getDisplayElement,
+    visualizerMounted = true,
+    minimalistMode = false,
+    obsRendering = false,
 }: UsePlaybackVisualizerBridgeParams) {
     // Read here rather than passed in: store fields and the module-level motion signals.
     const activePlaybackContext = usePlaybackStore(state => state.activePlaybackContext);
@@ -114,6 +135,7 @@ export function usePlaybackVisualizerBridge({
     const currentLineIndexRef = useRef(-1);
     // 复用同一块频谱缓冲：这段循环每秒跑 60 次，原来每帧 new 一个 1KB 的 Uint8Array，安卓上就是持续的 GC 抖动。
     const frequencyDataRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
+    const spectrumClearedRef = useRef(false);
     // 智能动感模式: loads the track's beats while it is on; the clock is stepped below. A ref, so
     // switching it does not rebuild the frame loop.
     const beatFxWantedRef = useRef(false);
@@ -255,10 +277,18 @@ export function usePlaybackVisualizerBridge({
         // is downstream of both, so it has real signal: dropping to the idle breath here would put
         // a visible stutter at exactly the moment meant to be seamless.
         const hasAudibleSignal = isActuallyPlaying || isTransitionAudible();
+        const needsSpectrum = (visualizerMounted && !minimalistMode) || obsRendering;
 
         if (backgroundHold) {
             // The bands keep their last values: nothing draws from them while held.
+        } else if (!needsSpectrum) {
+            // Skip 2048-point FFT and idle breath writes when no visualizer canvas or spectrum consumer is mounted.
+            if (!spectrumClearedRef.current) {
+                zeroAudioBands();
+                spectrumClearedRef.current = true;
+            }
         } else if (hasAudibleSignal && analyserRef.current) {
+            spectrumClearedRef.current = false;
             const bufferLength = analyserRef.current.frequencyBinCount;
             let dataArray: Uint8Array<ArrayBuffer> | null = frequencyDataRef.current;
             if (!dataArray || dataArray.length !== bufferLength) {
@@ -297,6 +327,7 @@ export function usePlaybackVisualizerBridge({
             audioBands.vocal.set(process(vocal, 1.5));
             audioBands.treble.set(process(treble, 2));
         } else {
+            spectrumClearedRef.current = false;
             const time = Date.now() / 2000;
             const breath = (Math.sin(time) + 1) * 20;
             audioPower.set(breath);
@@ -398,7 +429,7 @@ export function usePlaybackVisualizerBridge({
             }
         }
 
-        if (beatFxWantedRef.current && !backgroundHold) {
+        if (beatFxWantedRef.current && !backgroundHold && !minimalistMode) {
             tickBeatFx(isActuallyPlaying ? audioElement : null, analyserRef.current?.context);
         }
 
@@ -450,22 +481,27 @@ export function usePlaybackVisualizerBridge({
         isHifiActive,
         isExternalActive,
         isExternalRouteActive,
+        minimalistMode,
+        obsRendering,
+        visualizerMounted,
     ]);
 
-    // Every frame normally; while 后台节流 holds the lyrics, a slow timer that keeps only the clocks. The
-    // moment the hold lets go, one pass runs at once, so the lyrics have caught up before anything reads them.
+    // Every frame normally; in Minimalist Mode a throttled 10Hz timer while playing; while paused
+    // with no spectrum consumer, sync once and sleep until playback, seek, or offset changes.
     useEffect(() => {
         let heldTimer: number | undefined;
-        const tick = () => {
-            updateLoop();
-            schedule();
-        };
-        const schedule = () => {
-            if (isBackgroundLyricHeld()) {
-                heldTimer = window.setTimeout(tick, HELD_TICK_MS);
-            } else {
-                animationFrameRef.current = requestAnimationFrame(tick);
-            }
+        const needsSpectrum = (visualizerMounted && !minimalistMode) || obsRendering;
+        const shouldTickClock = () => {
+            if (needsSpectrum) return true;
+            const audioElement = getDisplayElement?.() ?? audioRef.current;
+            const deckPlaying = Boolean(audioElement && !audioElement.paused && !audioElement.ended);
+            return (
+                playerState === PlayerState.PLAYING
+                || deckPlaying
+                || isTransitionAudible()
+                || isNowPlayingStageActive
+                || isPlayerCapStageActive
+            );
         };
         const cancel = () => {
             if (animationFrameRef.current) {
@@ -474,8 +510,50 @@ export function usePlaybackVisualizerBridge({
             }
             window.clearTimeout(heldTimer);
         };
+        const tick = () => {
+            updateLoop();
+            schedule();
+        };
+        const schedule = () => {
+            if (!shouldTickClock()) return;
+            if (isBackgroundLyricHeld()) {
+                heldTimer = window.setTimeout(tick, HELD_TICK_MS);
+            } else if (minimalistMode && !obsRendering) {
+                heldTimer = window.setTimeout(tick, MINIMALIST_TICK_MS);
+            } else {
+                animationFrameRef.current = requestAnimationFrame(tick);
+            }
+        };
 
-        schedule();
+        if (shouldTickClock()) {
+            schedule();
+        } else {
+            updateLoop();
+        }
+
+        const onMediaBoundary = (event: Event) => {
+            const target = event.target;
+            const isAudioElement = typeof Element !== 'undefined' && target instanceof Element && target.tagName === 'AUDIO';
+            if (target !== audioRef.current && target !== getDisplayElement?.() && !isAudioElement) {
+                return;
+            }
+            cancel();
+            tick();
+        };
+        const observedMedia = (isHifiActive || isExternalRouteActive) ? getObservedMedia(null) : null;
+        const onObservedBoundary = () => {
+            cancel();
+            tick();
+        };
+        const boundaryEvents = ['play', 'playing', 'pause', 'ended', 'seeked', 'loadedmetadata', 'durationchange'] as const;
+
+        if (!needsSpectrum && typeof document !== 'undefined') {
+            boundaryEvents.forEach(type => document.addEventListener(type, onMediaBoundary, true));
+        }
+        if (!needsSpectrum && observedMedia) {
+            boundaryEvents.forEach(type => observedMedia.addEventListener(type, onObservedBoundary));
+        }
+
         const unsubscribeHold = useBackgroundLyricHoldStore.subscribe((state, previous) => {
             if (state.held === previous.held) return;
             // A song change while held set the line in the store (-1) behind this loop's back; compare
@@ -485,9 +563,31 @@ export function usePlaybackVisualizerBridge({
             tick();
         });
         return () => {
+            if (!needsSpectrum && typeof document !== 'undefined') {
+                boundaryEvents.forEach(type => document.removeEventListener(type, onMediaBoundary, true));
+            }
+            if (!needsSpectrum && observedMedia) {
+                boundaryEvents.forEach(type => observedMedia.removeEventListener(type, onObservedBoundary));
+            }
             unsubscribeHold();
             cancel();
             setHeldLyricTime(null);
         };
-    }, [animationFrameRef, updateLoop]);
+    }, [
+        animationFrameRef,
+        audioRef,
+        getDisplayElement,
+        incomingLyricTimelineOffsetMs,
+        isExternalRouteActive,
+        isHifiActive,
+        isNowPlayingStageActive,
+        isPlayerCapStageActive,
+        isTransitionAudible,
+        lyricTimelineOffsetMs,
+        minimalistMode,
+        obsRendering,
+        playerState,
+        updateLoop,
+        visualizerMounted,
+    ]);
 }

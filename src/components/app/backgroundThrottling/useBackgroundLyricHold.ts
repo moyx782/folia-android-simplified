@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { setLyricHoldReason } from './backgroundLyricHoldStore';
+import { IS_ANDROID_WEBVIEW, isAndroidNativeRuntime } from '../../../utils/platform';
 
 // src/components/app/backgroundThrottling/useBackgroundLyricHold.ts
 // Holds the lyric animation while 后台节流 is in force and the window is out of sight. The main
@@ -16,8 +17,21 @@ const isLyricHeld = (state: BackgroundThrottlingState, visibility: DocumentVisib
 export const useBackgroundLyricHold = () => {
     useEffect(() => {
         const electron = window.electron;
+        const isAndroid = IS_ANDROID_WEBVIEW || isAndroidNativeRuntime();
+
         if (!electron?.getBackgroundThrottlingState) {
-            return;
+            if (!isAndroid || typeof document === 'undefined') {
+                return;
+            }
+            const syncAndroidVisibility = () => {
+                setLyricHoldReason('background', document.visibilityState === 'hidden');
+            };
+            syncAndroidVisibility();
+            document.addEventListener('visibilitychange', syncAndroidVisibility);
+            return () => {
+                document.removeEventListener('visibilitychange', syncAndroidVisibility);
+                setLyricHoldReason('background', false);
+            };
         }
         let state: BackgroundThrottlingState = { active: false, hidden: false };
         let disposed = false;

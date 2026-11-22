@@ -518,6 +518,8 @@ export default {
     "coverColorDefault": "使用默认色彩",
     "staticModeOn": "静态模式已开启",
     "staticModeOff": "静态模式已关闭",
+    "minimalistModeOn": "已切换至极简模式",
+    "minimalistModeOff": "已切换回完整模式",
     "homeBgDisabled": "主页动态背景已关闭",
     "homeBgEnabled": "主页动态背景已开启",
     "autoBestLyricOn": "自动使用最佳歌词已开启",
@@ -1206,6 +1208,8 @@ export default {
       "settings-toggle-lattice-auto-focus": { "title": "Lattice 自动聚焦", "description": "切换歌曲时自动将正在播放的海报拉回队列拼贴中央" },
       "lattice-poster-tint": { "title": "海报墙叠色", "description": "调整队列拼贴（Lattice）与资料库墙上非当前聚焦海报的颜色叠层" },
       "settings-reduce-motion": { "title": "降低动态效果", "description": "逐个调低各个界面的动画，或选择跟随系统设置" },
+      "settings-minimalist-mode": { "title": "极简模式设置", "description": "前往图形与性能设置中的极简模式开关" },
+      "minimalist-mode-toggle": { "title": "切换极简模式", "description": "在低功耗极简界面与完整视觉界面之间切换" },
       "settings-toggle-reduce-lattice-motion": { "title": "降低队列拼贴动效", "description": "把队列拼贴的展开、相机飞行与入场波降为瞬时切换" },
       "settings-toggle-follow-system-reduced-motion": { "title": "跟随系统动画设置", "description": "切换是否允许系统的动画设置降低应用内的动态效果" },
       "settings-toggle-track-switch-buttons": { "title": "始终显示切歌箭头", "description": "切换进度条标题两侧上一首/下一首箭头的常驻显示" },
@@ -2784,6 +2788,8 @@ export default {
     "staticMode": "静态模式",
     "enableStaticMode": "静态模式",
     "enableStaticModeDesc": "禁用几何背景以节省资源",
+    "enableMinimalistMode": "极简模式",
+    "enableMinimalistModeDesc": "关闭所有不必要的动效、实时模糊与视觉画布，提供常规简洁音乐播放器界面以显著降低功耗",
     "settingsSearchPlaceholder": "搜索设置",
     "settingsSearchClear": "清除搜索",
     "settingsSearchEmpty": "没有匹配的设置",
@@ -4910,6 +4916,7 @@ export default {
     "sortAscending": "升序",
     "sortDescending": "降序",
     "importFolder": "导入文件夹",
+    "scanDeviceMusic": "扫描本机音乐",
     "importing": "导入中...",
     "importPlaylist": "导入歌单",
     "importingPlaylist": "正在导入歌单...",
@@ -7083,6 +7090,64 @@ export default {
         "drag": "拖动卡片整理顺序。只能在自己那一组里挪，松手时吸附到最近的位置。触屏上先按住卡片，拿起来了再拖。",
         "select": "在空白处拖出一个框，框住的卡片就选中了；按住 {{mod}} 点卡片可以逐张加减。选中的卡片旁边浮出一块板：入队、加入歌单、移出、取消选择。选中的来自不同来源时，加入歌单是灰的。"
       }
+    }
+  },
+  "minimalist": {
+    "badge": "极简",
+    "navAriaLabel": "极简模式导航",
+    "commandPaletteLabel": "命令面板",
+    "exitToFull": "切换回完整版",
+    "exitToFullShort": "完整版",
+    "onboardingShortcutTitle": "低功耗极简模式",
+    "onboardingShortcutDesc": "关闭多余动效与重渲染画布，使用常规音乐界面",
+    "onboardingShortcutAction": "开启极简",
+    "tabs": {
+      "discover": "发现",
+      "library": "音乐库",
+      "search": "搜索",
+      "profile": "我的"
+    },
+    "discover": {
+      "personalFm": "私人 FM",
+      "signIn": "登录 {{provider}}",
+      "empty": "暂无推荐内容",
+      "openLibrary": "前往音乐库"
+    },
+    "search": {
+      "recent": "搜索历史",
+      "clearHistory": "清空",
+      "removeHistoryItem": "删除该条搜索记录",
+      "noResults": "未找到相关结果"
+    },
+    "collection": {
+      "tracksUnit": "首",
+      "playAll": "播放全部",
+      "filterPlaceholder": "筛选歌曲",
+      "empty": "暂无歌曲"
+    },
+    "profile": {
+      "modeCardTitle": "当前为极简模式",
+      "modeCardDesc": "已关闭高开销着色器、毛玻璃模糊与多余动效，仅保留日常播放与听歌功能。",
+      "accountsSection": "音乐平台账号",
+      "settingsSection": "常用设置",
+      "allSettings": "完整设置",
+      "navidromeIntegration": "Navidrome 服务器",
+      "enabled": "已开启",
+      "disabled": "未开启"
+    },
+    "player": {
+      "coverView": "封面视图",
+      "lyricsView": "歌词视图",
+      "noLyrics": "暂无歌词",
+      "addToPlaylist": "收藏到歌单",
+      "addToQueue": "添加到播放列表",
+      "moveNext": "下一首播放",
+      "removeTrack": "移除",
+      "queueTitle": "播放队列",
+      "shuffle": "随机播放",
+      "emptyQueue": "播放队列为空",
+      "seek": "拖动进度",
+      "close": "关闭"
     }
   }
 } as const;

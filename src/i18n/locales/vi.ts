@@ -518,6 +518,8 @@ export default {
     "coverColorDefault": "Dùng màu mặc định",
     "staticModeOn": "Đã bật chế độ tĩnh",
     "staticModeOff": "Đã tắt chế độ tĩnh",
+    "minimalistModeOn": "Đã bật chế độ tối giản",
+    "minimalistModeOff": "Đã quay lại chế độ đầy đủ",
     "homeBgDisabled": "Đã tắt nền động trang chủ",
     "homeBgEnabled": "Đã bật nền động trang chủ",
     "autoBestLyricOn": "Đã bật tự dùng lời tối ưu",
@@ -1206,6 +1208,8 @@ export default {
       "settings-toggle-lattice-auto-focus": { "title": "Tự động lấy nét Lattice", "description": "Bật/tắt Lattice cuộn theo bài hát đang phát khi đổi bài" },
       "lattice-poster-tint": { "title": "Màu phủ làm dịu (Lattice & Thư viện)", "description": "Chỉnh lớp phủ làm dịu ảnh bìa ngoài tiêu điểm trên Lattice và Không gian Bravais" },
       "settings-reduce-motion": { "title": "Giảm chuyển động", "description": "Giảm hoạt ảnh trên từng bề mặt hoặc theo cài đặt hệ thống" },
+      "settings-minimalist-mode": { "title": "Cài đặt chế độ tối giản", "description": "Mở công tắc Chế độ tối giản trong Đồ họa & Hiệu năng" },
+      "minimalist-mode-toggle": { "title": "Bật/tắt chế độ tối giản", "description": "Chuyển giữa Chế độ tối giản (tiết kiệm pin, giao diện phát nhạc chuẩn) và Chế độ đầy đủ" },
       "settings-toggle-reduce-lattice-motion": { "title": "Giảm chuyển động trong Lattice", "description": "Chuyển hiệu ứng mở rộng, lia góc nhìn và xuất hiện ô thành tức thì" },
       "settings-toggle-follow-system-reduced-motion": { "title": "Theo cài đặt giảm chuyển động hệ thống", "description": "Bật/tắt cho phép cài đặt hoạt ảnh hệ thống giảm chuyển động trong ứng dụng" },
       "settings-toggle-track-switch-buttons": { "title": "Luôn hiện mũi tên chuyển bài", "description": "Bật/tắt hiển thị cố định mũi tên chuyển bài cạnh tiêu đề trên thanh tiến trình" },
@@ -2841,6 +2845,8 @@ export default {
     "staticMode": "Chế độ tĩnh",
     "enableStaticMode": "Chế độ tĩnh",
     "enableStaticModeDesc": "Chỉ tắt hình nền hình học.",
+    "enableMinimalistMode": "Chế độ tối giản",
+    "enableMinimalistModeDesc": "Tắt hoạt ảnh không cần thiết, làm mờ thời gian thực và canvas trực quan để tiết kiệm pin và bộ nhớ với giao diện trình phát nhạc tiêu chuẩn",
     "settingsSearchPlaceholder": "Tìm kiếm cài đặt",
     "settingsSearchClear": "Xóa tìm kiếm",
     "settingsSearchEmpty": "Không tìm thấy cài đặt phù hợp",
@@ -4910,6 +4916,7 @@ export default {
     "sortAscending": "Tăng dần",
     "sortDescending": "Giảm dần",
     "importFolder": "Nhập thư mục",
+    "scanDeviceMusic": "Quét nhạc trên thiết bị",
     "importing": "Đang nhập...",
     "importPlaylist": "Nhập danh sách phát",
     "importingPlaylist": "Đang nhập danh sách...",
@@ -7083,6 +7090,64 @@ export default {
         "drag": "Kéo thẻ để sắp xếp lại. Thẻ chỉ di chuyển trong nhóm của nó, và bám vào vị trí gần nhất khi thả. Trên màn hình cảm ứng, nhấn giữ thẻ đến khi nó nhấc lên rồi kéo.",
         "select": "Kéo một khung ở chỗ trống để chọn các thẻ bên trong; {{mod}}-nhấn một thẻ để thêm hoặc bỏ chọn. Một bảng nổi bên cạnh các thẻ đã chọn: thêm vào hàng đợi, thêm vào danh sách phát, bỏ ra, bỏ chọn. Khi mục chọn đến từ nhiều nguồn, thêm vào danh sách phát sẽ bị mờ."
       }
+    }
+  },
+  "minimalist": {
+    "badge": "Tối giản",
+    "navAriaLabel": "Điều hướng chế độ tối giản",
+    "commandPaletteLabel": "Bảng lệnh",
+    "exitToFull": "Về chế độ đầy đủ",
+    "exitToFullShort": "Đầy đủ",
+    "onboardingShortcutTitle": "Chế độ tối giản tiết kiệm pin",
+    "onboardingShortcutDesc": "Tắt hiệu ứng nặng và dùng giao diện trình phát nhạc gọn nhẹ",
+    "onboardingShortcutAction": "Dùng tối giản",
+    "tabs": {
+      "discover": "Khám phá",
+      "library": "Thư viện",
+      "search": "Tìm kiếm",
+      "profile": "Cá nhân"
+    },
+    "discover": {
+      "personalFm": "FM cá nhân",
+      "signIn": "Đăng nhập {{provider}}",
+      "empty": "Chưa có gợi ý",
+      "openLibrary": "Mở thư viện"
+    },
+    "search": {
+      "recent": "Tìm kiếm gần đây",
+      "clearHistory": "Xóa",
+      "removeHistoryItem": "Xóa mục lịch sử tìm kiếm",
+      "noResults": "Không tìm thấy kết quả"
+    },
+    "collection": {
+      "tracksUnit": "bài",
+      "playAll": "Phát tất cả",
+      "filterPlaceholder": "Lọc bài hát",
+      "empty": "Không có bài hát"
+    },
+    "profile": {
+      "modeCardTitle": "Đang dùng chế độ tối giản",
+      "modeCardDesc": "Đã tắt shader nền, làm mờ thời gian thực và các hoạt ảnh nặng.",
+      "accountsSection": "Nền tảng âm nhạc",
+      "settingsSection": "Tùy chọn",
+      "allSettings": "Tất cả cài đặt",
+      "navidromeIntegration": "Máy chủ Navidrome",
+      "enabled": "Đã bật",
+      "disabled": "Đang tắt"
+    },
+    "player": {
+      "coverView": "Xem ảnh bìa",
+      "lyricsView": "Xem lời bài hát",
+      "noLyrics": "Chưa có lời bài hát",
+      "addToPlaylist": "Thêm vào danh sách phát",
+      "addToQueue": "Thêm vào hàng đợi",
+      "moveNext": "Phát tiếp theo",
+      "removeTrack": "Xóa khỏi hàng đợi",
+      "queueTitle": "Hàng đợi phát",
+      "shuffle": "Phát ngẫu nhiên",
+      "emptyQueue": "Hàng đợi trống",
+      "seek": "Tua thời lượng",
+      "close": "Đóng"
     }
   }
 } as const;
