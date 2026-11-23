@@ -63,8 +63,8 @@ const MinimalistArtistView: React.FC<MinimalistArtistViewProps> = ({
 
     const pillStyle = useMemo(() => (active: boolean) => ({
         backgroundColor: active ? palette.accentColor : palette.mutedBg,
-        color: active ? '#ffffff' : palette.textPrimary,
-    }), [palette.accentColor, palette.mutedBg, palette.textPrimary]);
+        color: active ? palette.onAccentColor : palette.textPrimary,
+    }), [palette.accentColor, palette.mutedBg, palette.onAccentColor, palette.textPrimary]);
 
     return (
         <div className="h-full flex flex-col min-h-0" style={{ backgroundColor: palette.pageBg }}>
@@ -112,7 +112,7 @@ const MinimalistArtistView: React.FC<MinimalistArtistViewProps> = ({
                         disabled={artistView.playableTopSongs.length === 0}
                         onClick={artistView.actions.playScope}
                         className="p-2 rounded-full disabled:opacity-40"
-                        style={{ backgroundColor: palette.accentColor, color: '#ffffff' }}
+                        style={{ backgroundColor: palette.accentColor, color: palette.onAccentColor }}
                     >
                         <Play size={14} />
                     </button>

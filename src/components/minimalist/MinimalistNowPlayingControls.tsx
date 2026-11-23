@@ -14,8 +14,11 @@ type MinimalistNowPlayingControlsProps = {
     duration: number;
     effectiveLoopMode: 'off' | 'all' | 'one';
     canTogglePlayback: boolean;
+    canShuffle: boolean;
     isControlDisabled: boolean;
+    compact?: boolean;
     palette: MinimalistThemePalette;
+    onAccentColor?: string;
     onTogglePlay: () => void;
     onPrevTrack: () => void;
     onNextTrack: () => void;
@@ -31,8 +34,11 @@ const MinimalistNowPlayingControls: React.FC<MinimalistNowPlayingControlsProps> 
     duration,
     effectiveLoopMode,
     canTogglePlayback,
+    canShuffle,
     isControlDisabled,
+    compact = false,
     palette,
+    onAccentColor = palette.onAccentColor,
     onTogglePlay,
     onPrevTrack,
     onNextTrack,
@@ -50,47 +56,58 @@ const MinimalistNowPlayingControls: React.FC<MinimalistNowPlayingControlsProps> 
             : t('player.loopOff');
 
     return (
-        <div className="shrink-0 px-6 pb-6 pt-2 max-w-xl w-full mx-auto space-y-4">
-            <MinimalistSeekBar duration={duration} disabled={!hasSong} palette={palette} onSeek={onSeek} />
-            <div className="flex items-center justify-between">
+        <div className={compact ? 'shrink-0 px-5 pb-4 pt-1 max-w-xl w-full mx-auto space-y-2.5' : 'shrink-0 w-full max-w-xl mx-auto space-y-3'}>
+            <MinimalistSeekBar duration={duration} disabled={!hasSong || isControlDisabled} palette={palette} onSeek={onSeek} />
+            <div className="flex items-center justify-between gap-1">
                 <button
                     type="button"
-                    aria-label={loopLabel}
-                    onClick={onToggleLoop}
-                    className="p-2.5 rounded-full"
-                    style={{ color: effectiveLoopMode === 'off' ? palette.textSecondary : palette.accentColor }}
+                    aria-label={t('minimalist.player.shuffle')}
+                    disabled={!canShuffle || isControlDisabled}
+                    onClick={onShuffleQueue}
+                    className="p-2.5 rounded-full disabled:opacity-40"
+                    style={{ color: palette.textSecondary }}
                 >
-                    {effectiveLoopMode === 'one' ? <Repeat1 size={20} /> : <Repeat size={20} />}
+                    <Shuffle size={18} />
                 </button>
                 <button
                     type="button"
                     aria-label={t('ui.previousTrack')}
-                    disabled={isControlDisabled}
+                    disabled={!hasSong || isControlDisabled}
                     onClick={onPrevTrack}
                     className="p-2.5 rounded-full disabled:opacity-40"
                     style={{ color: palette.textPrimary }}
                 >
-                    <SkipBack size={24} />
+                    <SkipBack size={22} />
                 </button>
                 <button
                     type="button"
                     aria-label={isPlaying ? t('player.pause') : t('player.play')}
                     disabled={!canTogglePlayback || isControlDisabled}
                     onClick={onTogglePlay}
-                    className="w-14 h-14 rounded-full flex items-center justify-center disabled:opacity-40"
-                    style={{ backgroundColor: palette.accentColor, color: '#ffffff' }}
+                    className={compact ? 'w-12 h-12 rounded-full flex items-center justify-center disabled:opacity-40' : 'w-14 h-14 rounded-full flex items-center justify-center disabled:opacity-40'}
+                    style={{ backgroundColor: palette.accentColor, color: onAccentColor }}
                 >
-                    {isPlaying ? <Pause size={26} /> : <Play size={26} className="ml-0.5" />}
+                    {isPlaying ? <Pause size={compact ? 22 : 25} /> : <Play size={compact ? 22 : 25} className="ml-0.5" />}
                 </button>
                 <button
                     type="button"
                     aria-label={t('ui.nextTrack')}
-                    disabled={isControlDisabled}
+                    disabled={!hasSong || isControlDisabled}
                     onClick={onNextTrack}
                     className="p-2.5 rounded-full disabled:opacity-40"
                     style={{ color: palette.textPrimary }}
                 >
-                    <SkipForward size={24} />
+                    <SkipForward size={22} />
+                </button>
+                <button
+                    type="button"
+                    aria-label={loopLabel}
+                    disabled={!hasSong || isControlDisabled}
+                    onClick={onToggleLoop}
+                    className="p-2.5 rounded-full disabled:opacity-40"
+                    style={{ color: effectiveLoopMode === 'off' ? palette.textSecondary : palette.accentColor }}
+                >
+                    {effectiveLoopMode === 'one' ? <Repeat1 size={18} /> : <Repeat size={18} />}
                 </button>
                 <button
                     type="button"
@@ -99,18 +116,7 @@ const MinimalistNowPlayingControls: React.FC<MinimalistNowPlayingControlsProps> 
                     className="p-2.5 rounded-full"
                     style={{ color: palette.textSecondary }}
                 >
-                    <ListMusic size={20} />
-                </button>
-            </div>
-            <div className="flex justify-center">
-                <button
-                    type="button"
-                    onClick={onShuffleQueue}
-                    className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full"
-                    style={{ backgroundColor: palette.mutedBg, color: palette.textSecondary }}
-                >
-                    <Shuffle size={12} />
-                    <span>{t('minimalist.player.shuffle')}</span>
+                    <ListMusic size={18} />
                 </button>
             </div>
         </div>

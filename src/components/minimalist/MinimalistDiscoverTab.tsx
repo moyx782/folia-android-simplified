@@ -96,7 +96,7 @@ const MinimalistDiscoverTab: React.FC<MinimalistDiscoverTabProps> = ({
                         type="button"
                         onClick={() => openLoginWindow(providerId)}
                         className="rounded-xl px-3.5 py-2.5 text-sm font-medium"
-                        style={{ backgroundColor: palette.accentColor, color: '#ffffff' }}
+                        style={{ backgroundColor: palette.accentColor, color: palette.onAccentColor }}
                     >
                         {t('minimalist.discover.signIn', { provider: online.providerLabel })}
                     </button>

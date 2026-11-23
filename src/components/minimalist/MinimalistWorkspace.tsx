@@ -43,6 +43,8 @@ const MinimalistWorkspace: React.FC<MinimalistWorkspaceProps> = ({
     shuffleQueue,
     onLike,
     onSeek,
+    onSeekLyricLine,
+    playingSongLinks,
     playSong,
     removeQueueSong,
     moveQueueSongToNext,
@@ -76,12 +78,17 @@ const MinimalistWorkspace: React.FC<MinimalistWorkspaceProps> = ({
     useLibraryDirectoryBatchController(homeModel.surfaceProps);
     const homeResources = useLibraryHomeResources(homeModel.surfaceProps, { active: true });
     const palette = useMemo(() => createMinimalistPalette(isDaylight, theme), [isDaylight, theme]);
+    const rootStyle: React.CSSProperties & { '--minimalist-placeholder': string } = {
+        backgroundColor: palette.pageBg,
+        color: palette.textPrimary,
+        '--minimalist-placeholder': palette.textSecondary,
+    };
 
     return (
         <div
             data-testid="minimalist-workspace"
             className="fixed inset-0 z-10 flex flex-col"
-            style={{ backgroundColor: palette.pageBg, color: palette.textPrimary }}
+            style={rootStyle}
         >
             <MinimalistTopBar
                 activeTab={activeTab}
@@ -181,6 +188,8 @@ const MinimalistWorkspace: React.FC<MinimalistWorkspaceProps> = ({
                 onShuffleQueue={shuffleQueue}
                 onToggleLike={onLike}
                 onSeek={onSeek}
+                onSeekLyricLine={onSeekLyricLine}
+                playingSongLinks={playingSongLinks}
                 onOpenQueue={() => setIsQueueOpen(true)}
                 onOpenLyricMatch={openLyricMatch}
             />

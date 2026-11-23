@@ -97,7 +97,7 @@ const MinimalistSearchTab: React.FC<MinimalistSearchTabProps> = ({
                         value={searchQuery}
                         onChange={(event) => setSearchQuery(event.target.value)}
                         placeholder={t('search.placeholder', 'Search songs, albums, playlists')}
-                        className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                        className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[color:var(--minimalist-placeholder,rgba(161,161,170,0.72))] placeholder:opacity-75"
                         style={{ color: palette.textPrimary }}
                     />
                     {searchQuery && (
@@ -113,7 +113,7 @@ const MinimalistSearchTab: React.FC<MinimalistSearchTabProps> = ({
                                 type="button"
                                 onClick={() => handleSelectTarget(source, searchKind)}
                                 className="shrink-0 rounded-full px-3 py-1 text-xs font-medium"
-                                style={{ backgroundColor: active ? palette.accentColor : palette.mutedBg, color: active ? '#ffffff' : palette.textPrimary }}
+                                style={{ backgroundColor: active ? palette.accentColor : palette.mutedBg, color: active ? palette.onAccentColor : palette.textPrimary }}
                             >
                                 {getSourceLabel(source)}
                             </button>

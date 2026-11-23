@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@layer base {
+  /* Chromium 111-116 (e.g. Huawei WebView 114) parses Tailwind v4's `color-mix(in oklab, currentcolor 50%, transparent)`
+     on `::placeholder` as supported but paints it transparent. A concrete color in `@layer base` keeps unstyled inputs
+     legible while still yielding to any `@layer utilities` `placeholder:*` class or unlayered component rule. */
+  ::placeholder {
+    color: rgba(161, 161, 170, 0.72);
+  }
+}
+
 /* Tailwind 自动扫描整个仓库找类名，而且在 dev 服务器的主线程上同步扫。dev/prototypes 里是独立的原型页面，
    不用 Tailwind，却可能放着几 MB 的单行数据文件（fog-write/strokes.js 一行 4.4 MB），类名提取器碰上
    这种文件要扫好几分钟，期间 dev 服务器一个请求都不回，页面和 Electron 窗口就一直停在开屏。 */

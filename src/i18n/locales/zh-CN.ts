@@ -7138,6 +7138,8 @@ export default {
     "player": {
       "coverView": "封面视图",
       "lyricsView": "歌词视图",
+      "coverShort": "封面",
+      "lyricsShort": "歌词",
       "noLyrics": "暂无歌词",
       "addToPlaylist": "收藏到歌单",
       "addToQueue": "添加到播放列表",

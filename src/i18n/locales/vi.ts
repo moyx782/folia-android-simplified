@@ -7138,6 +7138,8 @@ export default {
     "player": {
       "coverView": "Xem ảnh bìa",
       "lyricsView": "Xem lời bài hát",
+      "coverShort": "Ảnh bìa",
+      "lyricsShort": "Lời nhạc",
       "noLyrics": "Chưa có lời bài hát",
       "addToPlaylist": "Thêm vào danh sách phát",
       "addToQueue": "Thêm vào hàng đợi",

@@ -505,7 +505,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                     </button>
                 </div>
             )}
-            {renderQueryInput('min-w-0 flex-1 bg-transparent py-2 text-sm outline-none placeholder:opacity-45 disabled:opacity-50')}
+            {renderQueryInput('min-w-0 flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-current placeholder:opacity-45 disabled:opacity-50')}
             <button
                 type="button"
                 onClick={() => setIsShowingAllCommands(current => !current)}

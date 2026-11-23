@@ -1,17 +1,28 @@
-import type { LyricData, PlayerState, SongResult, Theme, UnifiedSong } from '../../types';
+import type { Album, Artist, LyricData, PlayerState, SongResult, Theme, UnifiedSong } from '../../types';
 import type { MediaId, OmniCollection } from '../../types/onlineMusic';
 import type { SearchKind, SearchSource } from '../../stores/useSearchNavigationStore';
 import type { AppView } from '../../stores/useAppViewStore';
 import type { HomeViewModel } from '../app/home/buildHomeModel';
+import { adjustLightnessForContrast, getContrastRatio } from '../../utils/themeColorMath';
 
 // src/components/minimalist/minimalistTypes.ts
 // Shared view types and surface prop contracts for the Minimalist Mode ("极简模式") workspace.
 
 export type MinimalistTab = 'discover' | 'library' | 'search' | 'profile';
 
+export type MinimalistPlayingSongLinks = {
+    openLocalArtist: (entityId?: string) => void;
+    openLocalAlbum: () => void;
+    openNavidromeArtist: () => void;
+    openNavidromeAlbum: () => void;
+    openOnlineArtist: (song: SongResult, artist: Artist) => void;
+    openOnlineAlbum: (song: SongResult, album: Album) => void;
+};
+
 export type MinimalistThemePalette = {
     isDaylight: boolean;
     accentColor: string;
+    onAccentColor: string;
     pageBg: string;
     surfaceBg: string;
     elevatedBg: string;
@@ -21,14 +32,22 @@ export type MinimalistThemePalette = {
     mutedBg: string;
 };
 
+export const resolveOnAccentColor = (accentColor: string): string => (
+    getContrastRatio('#ffffff', accentColor) >= getContrastRatio('#000000', accentColor) ? '#ffffff' : '#000000'
+);
+
 export const createMinimalistPalette = (isDaylight: boolean, theme: Theme): MinimalistThemePalette => {
-    const accentColor = theme.accentColor || (isDaylight ? '#2563eb' : '#60a5fa');
+    const rawAccent = theme.accentColor || (isDaylight ? '#2563eb' : '#60a5fa');
+    const surfaceBg = isDaylight ? '#ffffff' : '#13151b';
+    const accentColor = adjustLightnessForContrast(rawAccent, surfaceBg, 3.5);
+    const onAccentColor = resolveOnAccentColor(accentColor);
     if (isDaylight) {
         return {
             isDaylight: true,
             accentColor,
+            onAccentColor,
             pageBg: '#f6f7f9',
-            surfaceBg: '#ffffff',
+            surfaceBg,
             elevatedBg: '#ffffff',
             borderColor: 'rgba(15, 23, 42, 0.08)',
             textPrimary: '#111827',
@@ -39,8 +58,9 @@ export const createMinimalistPalette = (isDaylight: boolean, theme: Theme): Mini
     return {
         isDaylight: false,
         accentColor,
+        onAccentColor,
         pageBg: '#0b0c10',
-        surfaceBg: '#13151b',
+        surfaceBg,
         elevatedBg: '#1a1d26',
         borderColor: 'rgba(255, 255, 255, 0.08)',
         textPrimary: '#f4f4f5',
@@ -74,6 +94,8 @@ export type MinimalistWorkspaceProps = {
     shuffleQueue: () => void;
     onLike: () => void;
     onSeek: (timeSec: number) => void;
+    onSeekLyricLine: (lyricTimeSec: number) => void;
+    playingSongLinks: MinimalistPlayingSongLinks;
     playSong: (song: SongResult, queue?: SongResult[]) => void;
     removeQueueSong: (index: number) => void;
     moveQueueSongToNext: (index: number) => void;

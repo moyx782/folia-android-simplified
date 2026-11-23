@@ -112,7 +112,7 @@ const MinimalistCollectionView: React.FC<MinimalistCollectionViewProps> = ({
                     disabled={view.contextTracks.length === 0}
                     onClick={actions.playScope}
                     className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium disabled:opacity-40"
-                    style={{ backgroundColor: palette.accentColor, color: '#ffffff' }}
+                    style={{ backgroundColor: palette.accentColor, color: palette.onAccentColor }}
                 >
                     <Play size={13} />
                     <span>{t('minimalist.collection.playAll')}</span>
@@ -137,7 +137,7 @@ const MinimalistCollectionView: React.FC<MinimalistCollectionViewProps> = ({
                         value={query}
                         onChange={(event) => setQuery(event.target.value)}
                         placeholder={t('minimalist.collection.filterPlaceholder')}
-                        className="w-28 bg-transparent text-xs outline-none"
+                        className="w-28 bg-transparent text-xs outline-none placeholder:text-[color:var(--minimalist-placeholder,rgba(161,161,170,0.72))] placeholder:opacity-75"
                         style={{ color: palette.textPrimary }}
                     />
                 </div>

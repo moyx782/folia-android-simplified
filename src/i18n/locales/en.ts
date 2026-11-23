@@ -7138,6 +7138,8 @@ export default {
     "player": {
       "coverView": "Cover View",
       "lyricsView": "Lyrics View",
+      "coverShort": "Cover",
+      "lyricsShort": "Lyrics",
       "noLyrics": "No lyrics available",
       "addToPlaylist": "Add to Playlist",
       "addToQueue": "Add to Queue",

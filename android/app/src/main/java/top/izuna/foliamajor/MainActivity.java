@@ -128,9 +128,7 @@ public class MainActivity extends BridgeActivity {
 
         SharedPreferences preferences = getSharedPreferences(WEBVIEW_UPDATE_PREFS, MODE_PRIVATE);
         if (preferences.getLong(WEBVIEW_UPDATE_KEY, -1L) == updateTime) return;
-        preferences.edit().putLong(WEBVIEW_UPDATE_KEY, updateTime).apply();
 
-        File webViewRoot = new File(getDataDir(), "app_webview/Default");
         String[] cachePaths = {
             "HTTP Cache",
             "Code Cache",
@@ -140,7 +138,64 @@ public class MainActivity extends BridgeActivity {
             "Service Worker",
             "Cache",
         };
-        for (String path : cachePaths) deleteQuietly(new File(webViewRoot, path));
+        try {
+            java.util.LinkedHashSet<File> webViewDirs = new java.util.LinkedHashSet<>();
+            File dataDir = getDataDir();
+            if (dataDir != null) {
+                webViewDirs.add(new File(dataDir, "app_webview"));
+                webViewDirs.add(new File(dataDir, "app_hws_webview"));
+                File[] dataChildren = dataDir.listFiles();
+                if (dataChildren != null) {
+                    for (File child : dataChildren) {
+                        String name = child.getName().toLowerCase(java.util.Locale.ROOT);
+                        if (child.isDirectory() && name.startsWith("app_") && name.contains("webview")) {
+                            webViewDirs.add(child);
+                        }
+                    }
+                }
+            }
+            File cacheDir = getCacheDir();
+            if (cacheDir != null) {
+                webViewDirs.add(new File(cacheDir, "WebView"));
+                File[] cacheChildren = cacheDir.listFiles();
+                if (cacheChildren != null) {
+                    for (File child : cacheChildren) {
+                        String name = child.getName().toLowerCase(java.util.Locale.ROOT);
+                        if (child.isDirectory() && name.contains("webview")) {
+                            webViewDirs.add(child);
+                        }
+                    }
+                }
+            }
+            for (File dir : webViewDirs) {
+                java.util.LinkedHashSet<File> profileDirs = new java.util.LinkedHashSet<>();
+                profileDirs.add(dir);
+                profileDirs.add(new File(dir, "Default"));
+                File[] dirChildren = dir.listFiles();
+                if (dirChildren != null) {
+                    for (File child : dirChildren) {
+                        if (child.isDirectory() && child.getName().startsWith("Profile ")) {
+                            profileDirs.add(child);
+                        }
+                    }
+                }
+                for (File profileDir : profileDirs) {
+                    for (String path : cachePaths) {
+                        deleteQuietly(new File(profileDir, path));
+                    }
+                }
+            }
+            preferences.edit().putLong(WEBVIEW_UPDATE_KEY, updateTime).apply();
+        } catch (Exception error) {
+            CrashDiagnostics.recordText(
+                getApplicationContext(),
+                "webview-cache-cleanup",
+                "main",
+                "cleanup-error",
+                error.getClass().getSimpleName() + ": " + error.getMessage(),
+                "Failed to clear WebView caches after app update"
+            );
+        }
     }
 
     private static void deleteQuietly(File file) {

@@ -51,7 +51,7 @@ const MinimalistProfileTab: React.FC<MinimalistProfileTabProps> = ({
                     type="button"
                     onClick={() => useMinimalistModeStore.getState().handleToggleMinimalistMode(false)}
                     className="shrink-0 rounded-xl px-3.5 py-2 text-xs font-medium"
-                    style={{ backgroundColor: palette.accentColor, color: '#ffffff' }}
+                    style={{ backgroundColor: palette.accentColor, color: palette.onAccentColor }}
                 >
                     {t('minimalist.exitToFull')}
                 </button>
@@ -71,7 +71,7 @@ const MinimalistProfileTab: React.FC<MinimalistProfileTabProps> = ({
                             ? t('home.providerNotConfigured', 'Not configured')
                             : provider.requiresAccount === false
                                 ? t('home.providerNoAccount', 'No sign-in needed')
-                                : provider.user?.nickname || t('home.guestTitle', 'Not signed in');
+                                : provider.user?.nickname || t('login.rowSignedOut', 'Not signed in');
 
                         return (
                             <div
@@ -108,7 +108,7 @@ const MinimalistProfileTab: React.FC<MinimalistProfileTabProps> = ({
                                             type="button"
                                             onClick={() => openLoginWindow(provider.providerId)}
                                             className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium"
-                                            style={{ backgroundColor: palette.accentColor, color: '#ffffff' }}
+                                            style={{ backgroundColor: palette.accentColor, color: palette.onAccentColor }}
                                         >
                                             <LogIn size={13} />
                                             <span>{actionLabel}</span>

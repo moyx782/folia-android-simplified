@@ -7138,6 +7138,8 @@ export default {
     "player": {
       "coverView": "Tampilan Sampul",
       "lyricsView": "Tampilan Lirik",
+      "coverShort": "Sampul",
+      "lyricsShort": "Lirik",
       "noLyrics": "Lirik tidak tersedia",
       "addToPlaylist": "Simpan ke Daftar Putar",
       "addToQueue": "Tambah ke Antrean",
